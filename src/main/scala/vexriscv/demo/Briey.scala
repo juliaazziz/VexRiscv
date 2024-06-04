@@ -287,8 +287,6 @@ class Briey(val config: BrieyConfig) extends Component{
     )
     val vgaCtrl = Axi4VgaCtrl(vgaCtrlConfig)
 
-
-
     val core = new Area{
       val config = VexRiscvConfig(
         plugins = cpuPlugins += new DebugPlugin(debugClockDomain)

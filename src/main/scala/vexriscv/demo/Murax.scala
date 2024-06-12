@@ -16,7 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.Seq
 import spinal.lib.blackbox.altera.VJTAG
 
-/* Case class for the Murax SoC */
+/* Case class for the Murax SoC config */
 case class MuraxConfig(coreFrequency            : HertzNumber,
                        pipelineDBus             : Boolean,
                        pipelineMainBus          : Boolean,
@@ -24,7 +24,7 @@ case class MuraxConfig(coreFrequency            : HertzNumber,
                        gpioWidth                : Int,
                        hardwareBreakpointCount  : Int,
                        cpuPlugins               : ArrayBuffer[Plugin[VexRiscv]]){
-  require(pipelineApbBridge || pipelineMainBus, "At least pipelineMainBus or pipelineApbBridge should be enable to avoid wipe transactions")
+  require(pipelineApbBridge || pipelineMainBus, "At least pipelineMainBus or pipelineApbBridge should be enabled to avoid wipe transactions")
 }
 
 /* Companion object for MuraxConfig with default conf */
@@ -40,8 +40,10 @@ object MuraxConfig{
     gpioWidth = 32,
     hardwareBreakpointCount = 0,
     cpuPlugins = ArrayBuffer(
+
+      /* Instruction bus */
       new IBusSimplePlugin(
-        resetVector = 0xF0040000l,
+        resetVector = 0x80040000l,
         cmdForkOnSecondStage = true,
         cmdForkPersistence = false,
         prediction = NONE,
@@ -49,26 +51,42 @@ object MuraxConfig{
         compressedGen = false,
         bigEndian = bigEndian
       ),
+
+      /* Data bus */
       new DBusSimplePlugin(
         catchAddressMisaligned = false,
         catchAccessFault = false,
         earlyInjection = false,
         bigEndian = bigEndian
       ),
+
+      /* Control state register plugin */
       new CsrPlugin(CsrPluginConfig.smallest(mtvecInit = 0x80000020l)),
+
+      /* Instruction decoder */
       new DecoderSimplePlugin(
         catchIllegalInstruction = false
       ),
+
+      /* Register file */
       new RegFilePlugin(
         regFileReadyKind = plugin.SYNC,
         zeroBoot = false
       ),
+
+      /* Int ALU */
       new IntAluPlugin,
+
+      /* Source plugin */
       new SrcPlugin(
         separatedAddSub = false,
         executeInsertion = false
       ),
+
+      /* Light shifter */
       new LightShifterPlugin,
+
+      /* Hazard simple */
       new HazardSimplePlugin(
         bypassExecute = false,
         bypassMemory = false,
@@ -78,10 +96,14 @@ object MuraxConfig{
         pessimisticWriteRegFile = false,
         pessimisticAddressMatch = false
       ),
+
+      /* Branch */
       new BranchPlugin(
         earlyBranch = false,
         catchAddressMisaligned = false
       ),
+
+      /* Generate YAML file */
       new YamlPlugin("cpu0.yaml")
     )
   )
@@ -126,8 +148,7 @@ case class Murax(config : MuraxConfig) extends Component{
         dataWidth = 32,
         useSlaveError = true
       ))
-    )
-    
+    ) 
   }
 
   /* Reset control clock domain */
@@ -249,7 +270,7 @@ case class Murax(config : MuraxConfig) extends Component{
 
     /* Main bus slaves */
     val mainBusMapping = ArrayBuffer[(PipelinedMemoryBus,SizeMapping)]()
-    mainBusMapping += apbBridge.io.pipelinedMemoryBus -> (0xF0000000l, 1 MB)
+    mainBusMapping += apbBridge.io.pipelinedMemoryBus -> (0x80000000l, 1 MB)
 
     /* Main bus decoder to handle address mapping and pipelining */
     val mainBusDecoder = new Area {
@@ -264,7 +285,6 @@ case class Murax(config : MuraxConfig) extends Component{
 
 /* Main object to generate the VHDL description */
 object Murax{
-  
   /* Generates Murax.vhd file */
   def main(args: Array[String]) {
     SpinalVhdl(Murax(MuraxConfig.default))

@@ -2,7 +2,8 @@ package vexriscv.demo
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.bus.amba3.apb._
+// import spinal.lib.bus.amba3.apb._
+import spinal.lib.bus.amba4.apb._
 import spinal.lib.bus.misc.SizeMapping
 import spinal.lib.bus.simple.PipelinedMemoryBus
 import spinal.lib.com.spi.ddr.SpiXdrMaster
@@ -15,6 +16,7 @@ import spinal.lib.bus.simple._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.Seq
 import spinal.lib.blackbox.altera.VJTAG
+
 
 /* Case class for the Murax SoC config */
 case class MuraxConfig(coreFrequency            : HertzNumber,
@@ -142,8 +144,8 @@ case class Murax(config : MuraxConfig) extends Component{
     val externalInterrupt = in Bool()
 
     /* Exposed APB interface for slave peripherals */
-    val apb = master(Apb3(
-      Apb3Config(
+    val apb = master(Apb4(
+      Apb4Config(
         addressWidth = 20,
         dataWidth = 32,
         useSlaveError = true
@@ -256,8 +258,8 @@ case class Murax(config : MuraxConfig) extends Component{
     }
 
     /* APB bridge */
-    val apbBridge = new PipelinedMemoryBusToApbBridge(
-      apb3Config = Apb3Config(
+    val apbBridge = new PipelinedMemoryBusToApb4Bridge(
+      apb4Config = Apb4Config(
         addressWidth = 20,
         dataWidth = 32
       ),

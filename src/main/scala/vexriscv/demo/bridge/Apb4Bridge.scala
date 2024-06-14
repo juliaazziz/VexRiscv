@@ -6,6 +6,7 @@ import spinal.lib.bus.amba4.apb._
 import spinal.lib.bus.simple.PipelinedMemoryBus
 import spinal.lib.bus.simple._
 
+/* PipelinedMemoryBusToApbBridge modified to use APB4 */
 case class PipelinedMemoryBusToApb4Bridge(apb4Config: Apb4Config, pipelineBridge : Boolean, pipelinedMemoryBusConfig : PipelinedMemoryBusConfig) extends Component{
   assert(apb4Config.dataWidth == pipelinedMemoryBusConfig.dataWidth)
 
@@ -26,8 +27,10 @@ case class PipelinedMemoryBusToApb4Bridge(apb4Config: Apb4Config, pipelineBridge
   io.apb.PWRITE  := pipelinedMemoryBusStage.cmd.write
   io.apb.PADDR   := pipelinedMemoryBusStage.cmd.address.resized
   io.apb.PWDATA  := pipelinedMemoryBusStage.cmd.data
+
+  /* APB4 signals */
   io.apb.PSTRB  := pipelinedMemoryBusStage.cmd.mask
-  io.apb.PPROT  := B"000"
+  io.apb.PPROT  := B"000"                                     // Fixed on no protection
 
   pipelinedMemoryBusStage.rsp.valid := False
   pipelinedMemoryBusStage.rsp.data  := io.apb.PRDATA

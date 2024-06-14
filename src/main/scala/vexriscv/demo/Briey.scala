@@ -439,7 +439,7 @@ object BrieyDe0Nano{
       )
     }
     val config = SpinalConfig()
-    config.generateVerilog({
+    config.generateVhdl({
       val toplevel = new Briey(BrieyConfig.default.copy(sdramLayout = IS42x160G.layout))
       toplevel
     })

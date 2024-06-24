@@ -362,23 +362,19 @@ object BrieySynthesisBench {
   }
 }
 
-
-
-
-object Max33SynthesisBench {
+object IIESynthesisBench {
   def main(args: Array[String]) {
-    val max33 = new Rtl {
-      override def getName(): String = "Max33"
-      override def getRtlPath(): String = "Max33.v"
+    val iie_soc = new Rtl {
+      override def getName(): String = "IIESoC"
+      override def getRtlPath(): String = "IIESoC.v"
       SpinalVerilog({
-        val max33 = InOutWrapper(new Max33(Max33Config.default.copy(gpioWidth = 8)).setDefinitionName(getRtlPath().split("\\.").head))
-        max33.io.mainClk.setName("clk")
-        max33
+        val iie_soc = InOutWrapper(new IIESoC(IIEConfig.default.copy(gpioWidth = 8)).setDefinitionName(getRtlPath().split("\\.").head))
+        iie_soc.io.mainClk.setName("clk")
+        iie_soc
       })
     }
 
-    val rtls = List(max33)
-
+    val rtls = List(iie_soc)
     val targets = XilinxStdTargets() ++ AlteraStdTargets() ++  IcestormStdTargets().take(1)
 
     Bench(rtls, targets)
@@ -421,8 +417,7 @@ object AllSynthesisBench {
     VexRiscvSynthesisBench.main(args)
     BrieySynthesisBench.main(args)
     MuraxSynthesisBench.main(args)
-    Max33SynthesisBench.main(args)
-
+    IIESynthesisBench.main(args)
   }
 }
 

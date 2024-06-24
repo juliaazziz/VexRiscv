@@ -13,7 +13,7 @@ import scala.collection.Seq
 import spinal.lib.blackbox.altera.VJTAG
 
 /* Case class for the SoC config */
-case class Max33Config(coreFrequency            : HertzNumber,
+case class IIEConfig(coreFrequency            : HertzNumber,
                        pipelineDBus             : Boolean,
                        pipelineMainBus          : Boolean,
                        pipelineApbBridge        : Boolean,
@@ -24,11 +24,11 @@ case class Max33Config(coreFrequency            : HertzNumber,
 }
 
 /* Companion object for the SoC config with default settings */
-object Max33Config{
-  def default : Max33Config = default(false)
+object IIEConfig{
+  def default : IIEConfig = default(false)
 
   /* Default configuration method */
-  def default(bigEndian: Boolean = false) =  Max33Config(
+  def default(bigEndian: Boolean = false) =  IIEConfig(
     coreFrequency         = 12 MHz,
     pipelineDBus          = true,
     pipelineMainBus       = true,
@@ -39,7 +39,7 @@ object Max33Config{
 
       /* Instruction bus */
       new IBusSimplePlugin(
-        resetVector = 0x80040000l,
+        resetVector = 0x00040000l,
         cmdForkOnSecondStage = true,
         cmdForkPersistence = false,
         prediction = NONE,
@@ -106,7 +106,7 @@ object Max33Config{
 }
 
 /* SoC class definition */
-case class Max33(config: Max33Config) extends Component{
+case class IIESoC(config: IIEConfig) extends Component{
   import config._
 
   /* IO ports for the SoC */
@@ -252,7 +252,7 @@ case class Max33(config: Max33Config) extends Component{
 
     /* Main bus slaves */
     val mainBusMapping = ArrayBuffer[(PipelinedMemoryBus,SizeMapping)]()
-    mainBusMapping += apbBridge.io.pipelinedMemoryBus -> (0x80000000l, 1 MB)
+    mainBusMapping += apbBridge.io.pipelinedMemoryBus -> (0x00000000l, 1 MB)
 
     /* Main bus decoder to handle address mapping and pipelining */
     val mainBusDecoder = new Area {
@@ -266,9 +266,9 @@ case class Max33(config: Max33Config) extends Component{
 }
 
 /* Main object to generate the VHDL description */
-object Max33{
+object IIESoC{
   /* Generates .vhd file */
   def main(args: Array[String]) {
-    SpinalVhdl(Max33(Max33Config.default))
+    SpinalVhdl(IIESoC(IIEConfig.default))
   }
 }
